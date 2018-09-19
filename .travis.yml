@@ -29,15 +29,21 @@ install:
 cache:
   directories:
   - ci/xenomai
-  - ci/linux
 
 script:
-  - ./ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
+  - ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
+  - lscpu; cat /proc/cpuinfo
   - git status -v
   - git status -v ci/xenomai/
   - ls -la .config include/ ci/*
-  - make -j 4 bzImage modules
-  - ls -la
+  - make -j 8 bzImage modules
+  - ./ci/xenomai/scripts/bootstrap
+  - mkdir xenobuild
+  - pushd xenobuild
+  - ../ci/xenomai/configure --with-core=cobalt --enable-smp --enable-pshared
+  - make all
+  - popd
+  - ls -la . xenobuild
 
 #  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
 #        then ci/build-all-configs.sh;
