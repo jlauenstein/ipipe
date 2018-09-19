@@ -32,7 +32,9 @@ cache:
   - ci/linux
 
 script:
+  - ./ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
   - git status -v
+  - git status -v ci/xenomai/
   - ls -la include/ ci/*
 
 #  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
