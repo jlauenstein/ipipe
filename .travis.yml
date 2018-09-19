@@ -35,7 +35,9 @@ script:
   - ./ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
   - git status -v
   - git status -v ci/xenomai/
-  - ls -la include/ ci/*
+  - ls -la .config include/ ci/*
+  - make -j 4 bzImage modules
+  - ls -la
 
 #  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
 #        then ci/build-all-configs.sh;
