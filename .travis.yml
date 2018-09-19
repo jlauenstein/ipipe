@@ -1,0 +1,35 @@
+# This work is licensed under the terms of the GNU GPL, version 2.  See
+# the COPYING file in the top-level directory.
+#
+
+language: c
+
+compiler:
+  - gcc
+
+sudo: required
+dist: trusty
+
+# Remove bogus python installations from PATH,
+# see https://github.com/travis-ci/travis-ci/issues/5326
+before_install:
+  - export PATH=$(echo $PATH | sed 's/\/opt\/python[^:]*//g')
+
+install:
+  # Install additional packages
+  - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu xenial main'
+  - sudo apt-get update -qq 
+  - sudo apt-get install -qq python-mako make
+  - gcc -v
+
+cache:
+  directories:
+  - ci/linux
+
+script:
+  - git status
+  - ls -la include/
+
+#  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
+#        then ci/build-all-configs.sh;
+#    fi
