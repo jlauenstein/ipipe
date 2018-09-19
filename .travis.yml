@@ -20,15 +20,20 @@ install:
   - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu xenial main'
   - sudo apt-get update -qq 
   - sudo apt-get install -qq python-mako make
-  - gcc -v
+  - if [ ! -L ci/xenomai ]; then
+        pushd ci;
+        git clone --depth=50 --branch=v3.0.7 https://github.com/jlauenstein/xenomai.git xenomai;
+        popd;
+    fi
 
 cache:
   directories:
+  - ci/xenomai
   - ci/linux
 
 script:
-  - git status
-  - ls -la include/
+  - git status -v
+  - ls -la include/ ci/*
 
 #  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
 #        then ci/build-all-configs.sh;
