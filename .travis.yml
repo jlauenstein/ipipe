@@ -32,6 +32,12 @@ cache:
 
 script:
   - mv .config cfg.xeno; make x86_64_defconfig; alias
+  - grep CONFIG_IPIPE .config
+  - cp .config cfg.ipipe; grep -v CONFIG_IPIPE >.config
+  - echo "===== NoIpipe/x86 build ====="
+  - make -j `nproc` bzImage modules; ls -l .config vmlinux
+  - make clean; mv cfg.ipipe .config
+  - echo "===== Ipipe/x86 build ====="
   - make -j `nproc` bzImage modules; ls -l .config vmlinux
   - make clean; mv cfg.xeno .config
   - ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
