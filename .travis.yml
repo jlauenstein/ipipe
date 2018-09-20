@@ -31,16 +31,18 @@ cache:
   - ci/xenomai
 
 script:
+  - mv .config cfg.xeno; make x86_64_defconfig; alias
+  - make -j `nproc` bzImage modules; ls -l .config vmlinux
+  - make clean; mv cfg.xeno .config
   - ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
-  - lscpu
   - git status -v
   - git status -v ci/xenomai/
-  - ls -la .config include/ ci/*
-  - make -j 8 bzImage modules
-  - pushd ci/xenomai; ./scripts/bootstrap; popd;
-  - mkdir xenobuild; pushd xenobuild;
+  - ls -la .config include/ ci/*; echo "===== Cobalt/x86 build ====="
+  - make -j `nproc` bzImage modules
+  - pushd ci/xenomai; ./scripts/bootstrap; popd
+  - mkdir xenobuild; pushd xenobuild
   - ../ci/xenomai/configure --with-core=cobalt --enable-smp --enable-pshared
-  - make all
+  - make -j `nproc` all
   - popd
   - ls -la . xenobuild
 
