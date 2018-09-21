@@ -31,19 +31,21 @@ cache:
   - ci/xenomai
 
 script:
-  - mv .config cfg.xeno; make x86_64_defconfig; alias
-  - grep CONFIG_IPIPE .config
-  - cp .config cfg.ipipe; grep -v CONFIG_IPIPE cfg.ipipe >.config
   - echo "===== NoIpipe/x86 build ====="
+  - cp ci/conf.x86.noipipe .config
+  - grep CONFIG_IPIPE .config
   - make -j `nproc` bzImage modules; ls -l .config vmlinux
-  - make clean; mv cfg.ipipe .config
+  - make clean
   - echo "===== Ipipe/x86 build ====="
+  - cp ci/conf.x86.ipipe .config
+  - grep CONFIG_IPIPE .config
   - make -j `nproc` bzImage modules; ls -l .config vmlinux
-  - make clean; mv cfg.xeno .config
+  - make clean
+  - echo "===== Cobalt/x86 build ====="
+  - cp ci/conf.x86.xeno .config
   - ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
   - git status -v
-  - git status -v ci/xenomai/
-  - ls -la .config include/ ci/*; echo "===== Cobalt/x86 build ====="
+  - ls -la .config include/ ci/*; 
   - make -j `nproc` bzImage modules
   - pushd ci/xenomai; ./scripts/bootstrap; popd
   - mkdir xenobuild; pushd xenobuild
