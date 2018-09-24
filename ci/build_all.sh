@@ -6,10 +6,10 @@
 echo "===== Ipipe/arm build ====="
 set -x
 
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- omap2plus_defconfig
 
+cp ci/conf.arm.ipipe .config
+grep CONFIG_IPIPE .config
 make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
-
 ls -l .config vmlinux
 make clean
 
