@@ -32,7 +32,3 @@ cache:
 
 script:
   - ci/build_all.sh
-
-#  - if [ ${COVERITY_SCAN_BRANCH} != 1 ];
-#        then ci/build-all-configs.sh;
-#    fi
