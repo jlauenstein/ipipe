@@ -19,7 +19,7 @@ install:
   # Install additional packages
   - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu xenial main'
   - sudo apt-get update -qq 
-  - sudo apt-get install -qq python-mako make gcc-arm-linux-gnueabihf gcc-multilib
+  - sudo apt-get install -qq python-mako make gcc-multilib
   - if [ ! -L ci/xenomai ]; then
         pushd ci;
         git clone --depth=50 --branch=v3.0.7 https://github.com/jlauenstein/xenomai.git xenomai;
