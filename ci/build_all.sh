@@ -4,6 +4,20 @@
 
 set -x
 
+build_xeno()
+{
+    local flags="$1"
+    
+    pushd ci/xenomai; ./scripts/bootstrap; popd
+    mkdir xenobuild
+    pushd xenobuild
+    ../ci/xenomai/configure --with-core=cobalt --enable-smp  $flags
+    make -s -j `nproc` all
+    popd
+    ls -la . xenobuild
+    
+}
+
 if [ "$TARGET" == "i386" ]; then
     sudo apt-get install -qq gcc-multilib
     echo "===== Cobalt/i386 build ====="
@@ -13,25 +27,24 @@ if [ "$TARGET" == "i386" ]; then
     git status -v
     ls -la .config include/ ci/*; 
     time make -j `nproc` bzImage modules
-    pushd ci/xenomai; ./scripts/bootstrap; popd
-    mkdir xenobuild
-    pushd xenobuild
-    ../ci/xenomai/configure --with-core=cobalt --enable-smp --enable-pshared --host=i686-linux CFLAGS="-m32 -O2" LDFLAGS="-m32"
-    make -s -j `nproc` all
-    ls -la .
-    make -s clean
-    popd
-    make clean
+
+    build_xeno '--enable-pshared --host=i686-linux CFLAGS="-m32 -O2" LDFLAGS="-m32"'
+#   make -s clean
 
 elif [ "$TARGET" == "arm" ]; then
     sudo apt-get install -qq gcc-arm-linux-gnueabihf
     echo "===== Ipipe/arm build ====="
 
     cp ci/conf.arm.ipipe .config
+#   ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
+
     grep CONFIG_IPIPE .config
-    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
+    time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
     ls -l .config vmlinux
-    make clean
+
+    build_xeno '--build=i686-pc-linux-gnu --host=arm-linux-gnueabihf- CFLAGS="-march=armv7-a -mfpu=vfp3" LDFLAGS="-march=armv7-a -mfpu=vfp3"'
+#   make -s clean
+
 
 elif [ "$TARGET" == "native" ]; then
 
@@ -56,13 +69,8 @@ elif [ "$TARGET" == "native" ]; then
     git status -v
     ls -la .config include/ ci/*; 
     make -j `nproc` bzImage modules
-    pushd ci/xenomai; ./scripts/bootstrap; popd
-    mkdir xenobuild
-    pushd xenobuild
-    ../ci/xenomai/configure --with-core=cobalt --enable-smp --enable-pshared
-    make -s -j `nproc` all
-    popd
-    ls -la . xenobuild
+
+    build_xeno "--enable-pshared"
 
 else
     echo "===== No TARGET set ====="
