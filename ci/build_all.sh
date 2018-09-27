@@ -2,12 +2,11 @@
 #
 # Copyright (c) Siemens AG, 2014-2018
 
-echo "===== Cobalt/i386 build ====="
-set -v
-
+set -x
 
 if [ "$TARGET" == "i386" ]; then
     sudo apt-get install -qq gcc-multilib
+    echo "===== Cobalt/i386 build ====="
 
     cp ci/conf.i386.xeno .config
     ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
@@ -24,9 +23,8 @@ if [ "$TARGET" == "i386" ]; then
     popd
     make clean
 
-else if [ "$TARGET" == "arm" ]; then
+elif [ "$TARGET" == "arm" ]; then
     sudo apt-get install -qq gcc-arm-linux-gnueabihf
-
     echo "===== Ipipe/arm build ====="
 
     cp ci/conf.arm.ipipe .config
@@ -35,8 +33,7 @@ else if [ "$TARGET" == "arm" ]; then
     ls -l .config vmlinux
     make clean
 
-else if [ "$TARGET" == "native" ]; then
-
+elif [ "$TARGET" == "native" ]; then
 
     echo "===== NoIpipe/x86 build ====="
 
@@ -67,4 +64,7 @@ else if [ "$TARGET" == "native" ]; then
     popd
     ls -la . xenobuild
 
+else
+    echo "===== No TARGET set ====="
+    exit 1
 fi
