@@ -6,17 +6,16 @@ set -x
 
 build_xeno()
 {
-    local flags="$1"
-    
     pushd ci/xenomai; ./scripts/bootstrap; popd
     mkdir xenobuild
     pushd xenobuild
-    ../ci/xenomai/configure --with-core=cobalt --enable-smp  $flags
+    # use all supplied extra args for configure
+    ../ci/xenomai/configure --with-core=cobalt --enable-smp  "$@"
     make -s -j `nproc` all
     popd
     ls -la . xenobuild
-    
 }
+
 
 if [ "$TARGET" == "i386" ]; then
     sudo apt-get install -qq gcc-multilib
@@ -28,7 +27,7 @@ if [ "$TARGET" == "i386" ]; then
     ls -la .config include/ ci/*; 
     time make -j `nproc` bzImage modules
 
-    build_xeno '--enable-pshared --host=i686-linux CFLAGS="-m32 -O2" LDFLAGS="-m32"'
+    build_xeno --enable-pshared --host=i686-linux "CFLAGS=-m32 -O2" "LDFLAGS=-m32"
 #   make -s clean
 
 elif [ "$TARGET" == "arm" ]; then
@@ -42,7 +41,7 @@ elif [ "$TARGET" == "arm" ]; then
     time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
     ls -l .config vmlinux
 
-    build_xeno '--build=i686-pc-linux-gnu --host=arm-linux-gnueabihf- CFLAGS="-march=armv7-a -mfpu=vfp3" LDFLAGS="-march=armv7-a -mfpu=vfp3"'
+    build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf- "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 #   make -s clean
 
 
