@@ -6,11 +6,14 @@ set -x
 
 build_xeno()
 {
-    pushd ci/xenomai; ./scripts/bootstrap; popd
+    pushd ci/xenomai
+    ./scripts/bootstrap
+    popd
     mkdir xenobuild
     pushd xenobuild
     # use all supplied extra args for configure
     ../ci/xenomai/configure --with-core=cobalt --enable-smp  "$@"
+    cat config.log
     make -s -j `nproc` all
     popd
     ls -la . xenobuild
@@ -18,14 +21,25 @@ build_xeno()
 
 
 if [ "$TARGET" == "i386" ]; then
-    sudo apt-get install -qq gcc-multilib
-    echo "===== Cobalt/i386 build ====="
 
-    cp ci/conf.i386.xeno .config
+    sudo apt-get install -qq gcc-multilib
+
+    echo "===== Ipipe/i386 build ====="
+
+    cp ci/conf.i386.ipipe .config
     ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
+
     git status -v
     ls -la .config include/ ci/*; 
     time make -j `nproc` bzImage modules
+    ls -l .config vmlinux
+    make -s clean
+
+    echo "===== Cobalt/i386 build ====="
+
+    cp ci/conf.i386.xeno .config
+    time make -j `nproc` bzImage modules
+    ls -l .config vmlinux
 
     build_xeno --enable-pshared --host=i686-linux "CFLAGS=-m32 -O2" "LDFLAGS=-m32"
 #   make -s clean
@@ -35,7 +49,7 @@ elif [ "$TARGET" == "arm" ]; then
     echo "===== Ipipe/arm build ====="
 
     cp ci/conf.arm.ipipe .config
-#   ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
+    ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
 
     grep CONFIG_IPIPE .config
     time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
