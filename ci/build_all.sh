@@ -27,8 +27,6 @@ if [ "$TARGET" == "i386" ]; then
     echo "===== Ipipe/i386 build ====="
 
     cp ci/conf.i386.ipipe .config
-    ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
-
     git status -v
     ls -la .config include/ ci/*; 
     time make -j `nproc` bzImage modules
@@ -38,6 +36,7 @@ if [ "$TARGET" == "i386" ]; then
     echo "===== Cobalt/i386 build ====="
 
     cp ci/conf.i386.xeno .config
+    ci/xenomai/scripts/prepare-kernel.sh --arch=x86 --verbose
     time make -j `nproc` bzImage modules
     ls -l .config vmlinux
 
@@ -45,15 +44,17 @@ if [ "$TARGET" == "i386" ]; then
 #   make -s clean
 
 elif [ "$TARGET" == "arm" ]; then
+
     sudo apt-get install -qq gcc-arm-linux-gnueabihf
+
     echo "===== Ipipe/arm build ====="
 
     cp ci/conf.arm.ipipe .config
-    ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
-
     grep CONFIG_IPIPE .config
     time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
     ls -l .config vmlinux
+
+    ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
 
     build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf- "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 #   make -s clean
