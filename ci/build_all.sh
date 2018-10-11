@@ -57,7 +57,7 @@ elif [ "$TARGET" == "arm" ]; then
 
     ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
 
-    build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
+    build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 
 #   build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf- "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 #   make -s clean
