@@ -47,7 +47,14 @@ if [ "$TARGET" == "i386" ]; then
 elif [ "$TARGET" == "arm" ]; then
 
     sudo apt-get install -qq gcc-arm-linux-gnueabihf
-    sudo apt-get install -y pkg-config-arm-linux-gnueabihf
+#    sudo apt-get install -y pkg-config-arm-linux-gnueabihf
+
+   echo "===== NoIpipe/arm build ====="
+
+    cp ci/conf.arm.noipipe .config
+    time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
+    ls -l .config vmlinux
+    make clean
 
     echo "===== Ipipe/arm build ====="
 
