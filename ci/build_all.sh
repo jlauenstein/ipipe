@@ -3,6 +3,7 @@
 # Copyright (c) Siemens AG, 2014-2018
 
 set -x
+# set -e
 
 build_xeno()
 {
@@ -61,8 +62,14 @@ elif [ "$TARGET" == "arm" ]; then
     cp ci/conf.arm.ipipe .config
     time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
     ls -l .config vmlinux
+    make clean
 
+    echo "===== Cobalt/arm build ====="
+
+    cp ci/conf.arm.xeno .config
     ci/xenomai/scripts/prepare-kernel.sh --arch=arm --verbose
+    time make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bzImage modules
+    ls -l .config vmlinux
 
     build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 #   make -s clean
