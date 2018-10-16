@@ -24,7 +24,7 @@ build_xeno()
 
 if [ "$TARGET" == "i386" ]; then
 
-    sudo apt-get install -qq gcc-multilib
+    sudo apt-get install -qq --no-install-recommends gcc-multilib
 
     echo "===== NoIpipe/i386 build ====="
 
@@ -47,12 +47,15 @@ if [ "$TARGET" == "i386" ]; then
     make ARCH=i386 -j `nproc` bzImage modules
     ls -l .config vmlinux
 
-    build_xeno --enable-pshared --host=i686-linux "CFLAGS=-m32 -O2" "LDFLAGS=-m32"
+    cfg_opts="--enable-pshared --host=i686-linux \"CFLAGS=-m32 -O2\" \"LDFLAGS=-m32\""
+    
+    build_xeno $cfg_opts
+#   build_xeno --enable-pshared --host=i686-linux "CFLAGS=-m32 -O2" "LDFLAGS=-m32"
 #   make -s clean
 
 elif [ "$TARGET" == "arm" ]; then
 
-    sudo apt-get install -qq gcc-arm-linux-gnueabihf
+    sudo apt-get install -qq gcc-arm-linux-gnueabihf >/dev/null
 
    echo "===== NoIpipe/arm build ====="
 
@@ -78,7 +81,7 @@ elif [ "$TARGET" == "arm" ]; then
     build_xeno --build=i686-pc-linux-gnu --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"
 #   make -s clean
 
-elif [ "$TARGET" == "native" ]; then
+elif [ "$TARGET" == "x86" ]; then
 
     echo "===== NoIpipe/x86 build ====="
 
