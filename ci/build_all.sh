@@ -5,6 +5,19 @@
 set -x
 # set -e
 
+KRNL_CFGS="noipipe ipipe"
+
+build_kernel()
+{
+    cp ci/conf.${TARGET}.${KRNL_CFG} .config
+    make olddefconfig
+
+    make ARCH=$TARGET CROSS_COMPILE=$CROSS_COMPILE -j `nproc` bzImage modules
+    
+    ls -l .config vmlinux
+    make -s ARCH=$TARGET CROSS_COMPILE=$CROSS_COMPILE clean
+}
+
 build_xeno()
 {
     pushd ci/xenomai
@@ -13,15 +26,60 @@ build_xeno()
     
     mkdir xenobuild
     pushd xenobuild
-    
     # use all supplied extra args for configure
-    ../ci/xenomai/configure --with-core=cobalt --enable-smp  "$@"
+    ../ci/xenomai/configure --with-core=cobalt --enable-smp "$@"
 
     make -s -j `nproc` all
     popd
 }
 
+################################################################
 
+case $TARGET in
+    x86)
+        CROSS_COMPILE=
+        XENO_ARCH=x86
+        XENO_OPTS="--enable-pshared"
+        ;;
+    i386)
+        sudo apt-get install -qq --no-install-recommends gcc-multilib
+
+        CROSS_COMPILE=
+        XENO_ARCH=x86
+        XENO_OPTS="--enable-pshared --host=i686-linux 'CFLAGS=-m32 -O2' \"LDFLAGS=-m32\""
+        ;;
+    arm)
+        sudo apt-get install -qq gcc-arm-linux-gnueabihf >/dev/null
+
+        CROSS_COMPILE=arm-linux-gnueabihf-
+        XENO_ARCH=arm
+        XENO_OPTS='--build=i686-pc-linux-gnu --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"'
+        ;;
+    *)
+        echo "===== Error TARGET: $TARGET ====="
+        exit 1
+        ;;
+esac
+
+for KRNL_CFG in $KRNL_CFGS; do
+
+    echo "===== $TARGET/$KRNL_CFG build ====="
+    build_kernel
+
+done
+
+KRNL_CFG=xeno
+echo "===== $TARGET/$KRNL_CFG build ====="
+
+ci/xenomai/scripts/prepare-kernel.sh --arch=$XENO_ARCH --verbose
+
+build_kernel
+
+build_xeno $XENO_OPTS
+
+exit 0
+
+####################################################################
 if [ "$TARGET" == "i386" ]; then
 
     sudo apt-get install -qq --no-install-recommends gcc-multilib
@@ -47,7 +105,7 @@ if [ "$TARGET" == "i386" ]; then
     make ARCH=i386 -j `nproc` bzImage modules
     ls -l .config vmlinux
 
-    cfg_opts="--enable-pshared --host=i686-linux \"CFLAGS=-m32 -O2\" \"LDFLAGS=-m32\""
+    cfg_opts="--enable-pshared --host=i686-linux \"CFLAGS=-m32\ -O2\" \"LDFLAGS=-m32\""
     
     build_xeno $cfg_opts
 #   build_xeno --enable-pshared --host=i686-linux "CFLAGS=-m32 -O2" "LDFLAGS=-m32"
