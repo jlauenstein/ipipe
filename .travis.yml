@@ -26,7 +26,7 @@ install:
   - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu xenial main'
   - sudo apt-get update -qq 
   - sudo apt-get install -qq make
-  - if [ ! -d ci/xenomai ]; then
+  - if [  -d ci/xenomai ]; then
         pushd ci;
         git clone --depth=50 --branch=v3.0.7 https://github.com/jlauenstein/xenomai.git xenomai;
         popd;

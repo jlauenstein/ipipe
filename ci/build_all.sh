@@ -5,12 +5,15 @@
 set -x
 # set -e
 
-KRNL_CFGS="noipipe ipipe"
+# KRNL_CFGS="noipipe ipipe"
 
+# build kernel for $TARGET arch, $1: kernel config
 build_kernel()
 {
-    cp ci/conf.${TARGET}.${KRNL_CFG} .config
-    make olddefconfig
+    echo "=========== $TARGET/$1 build ==========="
+
+    cp ci/conf.${TARGET}.${1} .config
+    make ARCH=$TARGET CROSS_COMPILE=$CROSS_COMPILE olddefconfig
 
     make ARCH=$TARGET CROSS_COMPILE=$CROSS_COMPILE -j `nproc` bzImage modules
     
@@ -18,17 +21,15 @@ build_kernel()
     make -s ARCH=$TARGET CROSS_COMPILE=$CROSS_COMPILE clean
 }
 
+# build Xenomai user space, use all supplied extra args for configure
 build_xeno()
 {
     pushd ci/xenomai
     ./scripts/bootstrap
     popd
-    
     mkdir xenobuild
     pushd xenobuild
-    # use all supplied extra args for configure
     ../ci/xenomai/configure --with-core=cobalt --enable-smp "$@"
-
     make -s -j `nproc` all
     popd
 }
@@ -37,23 +38,20 @@ build_xeno()
 
 case $TARGET in
     x86)
-        CROSS_COMPILE=
         XENO_ARCH=x86
         XENO_OPTS="--enable-pshared"
         ;;
     i386)
-        sudo apt-get install -qq --no-install-recommends gcc-multilib
-
-        CROSS_COMPILE=
+        sudo apt-get install -qq --no-install-recommends gcc-multilib >/dev/null
         XENO_ARCH=x86
-        XENO_OPTS="--enable-pshared --host=i686-linux 'CFLAGS=-m32 -O2' \"LDFLAGS=-m32\""
+        XENO_OPTS=("--enable-pshared" "--host=i686-linux" "CFLAGS=-m32 -O2" "LDFLAGS=-m32")
         ;;
     arm)
         sudo apt-get install -qq gcc-arm-linux-gnueabihf >/dev/null
-
         CROSS_COMPILE=arm-linux-gnueabihf-
         XENO_ARCH=arm
-        XENO_OPTS='--build=i686-pc-linux-gnu --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3"'
+        XENO_OPTS=("--build=i686-pc-linux-gnu" "--host=arm-linux-gnueabihf" "CC=arm-linux-gnueabihf-gcc" \
+                   "CFLAGS=-march=armv7-a -mfpu=vfp3" "LDFLAGS=-march=armv7-a -mfpu=vfp3")
         ;;
     *)
         echo "===== Error TARGET: $TARGET ====="
@@ -61,21 +59,16 @@ case $TARGET in
         ;;
 esac
 
-for KRNL_CFG in $KRNL_CFGS; do
 
-    echo "===== $TARGET/$KRNL_CFG build ====="
-    build_kernel
+build_kernel "noipipe"
 
-done
-
-KRNL_CFG=xeno
-echo "===== $TARGET/$KRNL_CFG build ====="
+build_kernel "ipipe"
 
 ci/xenomai/scripts/prepare-kernel.sh --arch=$XENO_ARCH --verbose
 
-build_kernel
+build_kernel "xeno"
 
-build_xeno $XENO_OPTS
+build_xeno "${XENO_OPTS[@]}"
 
 exit 0
 
